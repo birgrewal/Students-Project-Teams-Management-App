@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import axios from 'axios'
 
@@ -6,6 +6,7 @@ export default function Nav() {
     const [username, setUsername] = useState();
     const [password, setPassword] = useState();
     var [loggedIn, setLoggedIn] = useState();
+    const [loggedInUser, setLoggedInUser] = useState();
 
     const [signUpUsername, setSignUpUsername] = useState();
     const [signUpPassword, setSignUpPassword] = useState();
@@ -14,14 +15,31 @@ export default function Nav() {
     const [email, setEmail] = useState();
     const [phone, setPhone] = useState();
 
-    setLoggedIn = false
+    window.addEventListener('load', () => {
+        axios.get('http://localhost:3000/loggedin')
+            .then((result) => {
+                if (result.data) {
+                    setLoggedIn(true)
+                    setLoggedInUser(result.data)
+                    console.log(result.data)
+                } else {
+                    // setLoggedIn(false)
+                    console.log(result.data)
+                }
+            })
+            .catch(err => console.log(err))
+    })
 
     const handleLogin = (e) => {
         axios.post('http://localhost:3000/login', { username, password })
             .then((result) => {
-                if (result.data.message == "Login successful") {
-                    setLoggedIn = true
-                    console.log("logginSuccess")
+                // console.log(username, password)
+                if (result.data == "Login successful") {
+                    setLoggedIn(true)
+                    setLoggedInUser(username)
+                    console.log(result.data)
+                } else {
+                    console.log(result.data.message)
                 }
             })
             .catch(err => console.log(err))
@@ -39,6 +57,14 @@ export default function Nav() {
         } else {
             console.log('Password not matching')
         }
+    }
+
+    const logout = (e) => {
+        axios.get('http://localhost:3000/logout')
+            .then((result) => {
+                console.log(result)
+            })
+            .catch(err => console.log(err))
     }
 
     return (<>
@@ -62,43 +88,50 @@ export default function Nav() {
                         </li>
                     </ul>
 
-                    <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#login">
-                        Login
-                    </button>
-                    <div className="modal fade" id="login" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                        <div className="modal-dialog">
-                            <div className="modal-content">
-                                <div className="modal-header">
-                                    <h1 className="modal-title fs-5" id="exampleModalLabel">Login</h1>
-                                    <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div className="modal-body">
-                                    <div className="mb-3 row">
-                                        <div className="mb-3 row">
-                                            <label htmlFor="inputPassword" className="col-sm-2 col-form-label">Username</label>
-                                            <div className="col-sm-10">
-                                                <input type="text" className="form-control" id="username" onChange={(e) => { setUsername(e.target.value) }} />
+                    {(loggedIn) ?
+                        <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#" onClick={logout}>
+                            Logout
+                        </button>
+                        :
+                        <>
+                            <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#login">
+                                Login
+                            </button>
+                            <div className="modal fade" id="login" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div className="modal-dialog">
+                                    <div className="modal-content">
+                                        <div className="modal-header">
+                                            <h1 className="modal-title fs-5" id="exampleModalLabel">Login</h1>
+                                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div className="modal-body">
+                                            <div className="mb-3 row">
+                                                <div className="mb-3 row">
+                                                    <label htmlFor="inputPassword" className="col-sm-2 col-form-label">Username</label>
+                                                    <div className="col-sm-10">
+                                                        <input type="text" className="form-control" id="username" onChange={(e) => { setUsername(e.target.value) }} />
+                                                    </div>
+                                                </div>
+                                                <label htmlFor="inputPassword" className="col-sm-2 col-form-label">Password</label>
+                                                <div className="col-sm-10">
+                                                    <input type="password" className="form-control" id="inputPassword" onChange={(e) => { setPassword(e.target.value) }} />
+                                                </div>
                                             </div>
                                         </div>
-                                        <label htmlFor="inputPassword" className="col-sm-2 col-form-label">Password</label>
-                                        <div className="col-sm-10">
-                                            <input type="password" className="form-control" id="inputPassword" onChange={(e) => { setPassword(e.target.value) }} />
+                                        <div className="modal-footer">
+                                            <button type="button" className="btn btn-secondary" onClick={handleLogin}>Login</button>
+                                            <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#signup">
+                                                Create Account</button>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="modal-footer">
-                                    <button type="button" className="btn btn-secondary" onClick={handleLogin}>Login</button>
-                                    <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#signup">
-                                        Create Account</button>
-                                </div>
                             </div>
-                        </div>
-                    </div>
+                            <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#signup">
+                                Signup
+                            </button>
+                        </>}
 
-                    <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#signup">
-                        Signup
-                    </button>
-                    <div>Logged In</div>
+
 
                     <div className="modal fade" id="signup" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                         <div className="modal-dialog">
@@ -163,4 +196,3 @@ export default function Nav() {
     </>
     )
 }
-
